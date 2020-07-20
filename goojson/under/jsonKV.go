@@ -16,6 +16,7 @@ type JsonKV struct {
 //Writer将[]JsonKV写入Map，同时细分value的类型
 //CheckType之后类型是确定的
 func (jsr *JsonKV)Writer(jsrSlice []JsonKV)(map[string]interface{},error)  {
+	fmt.Println("writer",jsrSlice)
 	var valueMap = make(map[string]interface{})
 	for _,v := range jsrSlice{
 		key := v.Key
@@ -30,6 +31,7 @@ func (jsr *JsonKV)Writer(jsrSlice []JsonKV)(map[string]interface{},error)  {
 
 //
 func (jsr *JsonKV)CheckType()error  {
+	fmt.Println("触发Check")
 	_,ok := jsr.Distributor()
 	if !ok {
 		return errors.New("TypeError")
@@ -39,7 +41,7 @@ func (jsr *JsonKV)CheckType()error  {
 
 //分配器：根据within类型的不同返回不同结果
 func (jsr *JsonKV)Distributor()(interface{},bool)  {
-	//fmt.Println("distribute",jsr)
+	fmt.Println("distribute",jsr)
 	switch jsr.WithinType {
 	default:
 		//fmt.Println("unknown",jsr)
@@ -53,6 +55,7 @@ func (jsr *JsonKV)Distributor()(interface{},bool)  {
 	case "false":
 		return  jsr.False()
 	case "array":
+		fmt.Println("wozai")
 		return jsr.Array()
 	case "string":
 		return jsr.String()
@@ -143,6 +146,8 @@ func (jsr *JsonKV)Nil()(interface{},bool)  {
 }
 
 func (jsr *JsonKV)Array()([]interface{},bool)  {
+	fmt.Println("触发Array")
+	fmt.Println("array",jsr.Within)
 	var g GoojsonByte
 	var arr []interface{}
 	g =  tc.Str2bytes(CleanSpace(jsr.Within.(string)))
@@ -151,9 +156,9 @@ func (jsr *JsonKV)Array()([]interface{},bool)  {
 		return nil,true
 	}
 	fmt.Println(tc.Bytes2str(g))
-	rawSliceS:= g.Go2Array()
-	fmt.Println("1111",rawSliceS)
-	for i,v := range rawSliceS{
+	SliceOfjsonSlice:= g.Go2Array()
+	fmt.Println("SliceOfjsonSlice",SliceOfjsonSlice)
+	for i,v := range SliceOfjsonSlice{
 		fmt.Println("im",i,v)
 		var s JsonKV
 		kMap,err := jsr.Writer(v)
@@ -163,6 +168,7 @@ func (jsr *JsonKV)Array()([]interface{},bool)  {
 		s.Key = strconv.Itoa(i)
 		s.Within = kMap
 		s.WithinType = "map"
+		fmt.Println(s)
 		arr = append(arr,s)
 	}
 	fmt.Println("2222",arr)

@@ -56,6 +56,20 @@ func TestUnmarshall4(t *testing.T)  {
 		return
 	}
 	for k,v := range r{
-		fmt.Println(k,v)
+		fmt.Println("final",k,v)
+	}
+}
+
+//带数组的json
+func TestUnmarshall5(t *testing.T)  {
+	var un Unmarshall
+	s := "{\n\"name\":\"网站\",\n\"num\":3,\n\"sites\":[ \"Google\", \"Runoob\", \"Taobao\" ]\n}"
+	r,err:= un.Unmarshall().Map(s)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for k,v := range r{
+		fmt.Println("final",k,v)
 	}
 }

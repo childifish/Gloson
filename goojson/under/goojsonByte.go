@@ -1,27 +1,37 @@
 package under
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type GoojsonByte []byte
 
 //将goo分解成chuck，再解析chuck-item到结构体数组
 func (g *GoojsonByte)Go2KV()[]JsonKV  {
 	items :=  g.Breaker()
+	fmt.Println("触发Go2KV")
 	return g.Analysts(items)
 }
 
 func (g *GoojsonByte)Go2Array()[][]JsonKV  {
+	fmt.Println("触发Go2Array")
 	items :=  g.EXBreaker()
-	var ite GoojsonByte
-	var jsonkv []JsonKV
-	var jsonkvs [][]JsonKV
-	for _,v := range items{
-		ite = tc.Str2bytes(v)
-		fmt.Print(v)
-		jsonkv = ite.Analysts(ite.Breaker())
-		jsonkvs = append(jsonkvs,jsonkv)
-	}
-	return jsonkvs
+	fmt.Println("after exbreaker",items)
+	//var ite GoojsonByte
+	//var jsonkv []JsonKV
+	//var jsonkvs [][]JsonKV
+	//for k,v := range items{
+	//	fmt.Println("这个是EXBreaker后的items",k,v)
+	//}
+	//for _,v := range items{
+	//	ite = tc.Str2bytes(v)
+	//	fmt.Print(v)
+	//	jsonkv = ite.Analysts(ite.Breaker())
+	//	jsonkvs = append(jsonkvs,jsonkv)
+	//}
+	//fmt.Println("jackson",jsonkvs)
+	//return jsonkvs
+	return nil
 }
 
 //返回goojson本身
@@ -41,6 +51,69 @@ func (g *GoojsonByte)Breaker()[]string  {
 	// 那要是“”中间有“呢 解决：用\判断---这个好像不用..不符合格式的string会报错(string里的”必须转义)
 	// 如果是数组呢
 	tag := -1
+	tag4tag := false
+	tagArray := 0
+	for i,byt := range rawBytes{
+		//34是ASCII码的引号"
+		if byt == 34{
+			//不用&&大多数时候能少一次判断
+			if i >=1{
+				if rawBytes[i-1] == 92{//92是ASCII码的反斜杠\
+					//当 前一位byte为转义符时，此次"不计入
+					continue
+				}
+				//取反
+				tag4tag = !tag4tag
+				continue
+			}
+		}
+		//当tag4tag为真--即在双引号里，跳过本次循环（可以防止字符串和key里的特殊符号）
+		if tag4tag {
+			continue
+		}
+		switch byt{
+		case 91 :
+			tagArray ++
+		case 93 :
+			tagArray --
+		case 123:
+			tag ++
+			fmt.Println("++",tag)
+			continue
+		case 125:
+			tag --
+			fmt.Println("--",tag)
+			continue
+		case 44://44是ASCII码的逗号,
+			if tag == 0&& tagArray == 0{
+				items = append(items,tc.Bytes2str(rawBytes[markStart:i]))
+				markStart = i+1
+				fmt.Println("item",items)
+			}
+		}
+	}
+	//len(rawBytes)-1可以去掉末尾的}
+
+	items = append(items,tc.Bytes2str(rawBytes[markStart:len(rawBytes)-1]))
+	for k,v := range items{
+		fmt.Println("items",k,v)
+	}
+
+	return items
+}
+
+//用来拆分数组
+func (g *GoojsonByte)EXBreaker()[]string  {
+	var items []string
+	rawBytes := g.Self()
+	fmt.Println("im writting array",tc.Bytes2str(rawBytes))
+	markStart := 1
+	//tag//这里用tag标识结构体套娃里的引号，当'{'和'}' ”抵消“时才分割//一开始用的++，--后来改成了bool取反   又改了回来---取反的话遇到"{...{"会爆炸
+	//tag初始值为-1：因为最外层有”{“
+	// 要是字符串里面有{呢 解决：用”的个数判断
+	// 那要是“”中间有“呢 解决：用\判断---这个好像不用..不符合格式的string会报错(string里的”必须转义)
+	// 如果是数组呢
+	tag := 0
 	tag4tag := false
 
 	for i,byt := range rawBytes{
@@ -77,64 +150,9 @@ func (g *GoojsonByte)Breaker()[]string  {
 	//len(rawBytes)-1可以去掉末尾的}
 	items = append(items,tc.Bytes2str(rawBytes[markStart:len(rawBytes)-1]))
 	//fmt.Println("item",items)
-	return items
-}
-
-//用来拆分数组
-func (g *GoojsonByte)EXBreaker()[]string  {
-	fmt.Println("-------------------------exbreaker----------------")
-	var items []string
-	rawBytes := g.Self()
-	fmt.Println(tc.Bytes2str(rawBytes))
-	markStart := 1
-	//tag//这里用tag标识结构体套娃里的引号，当'{'和'}' ”抵消“时才分割//一开始用的++，--后来改成了bool取反   又改了回来---取反的话遇到"{...{"会爆炸
-	//tag初始值为-1：因为最外层有”{“
-	// 要是字符串里面有{呢 解决：用”的个数判断
-	// 那要是“”中间有“呢 解决：用\判断---这个好像不用..不符合格式的string会报错(string里的”必须转义)
-	// 如果是数组呢
-	tag := 0
-	tag4tag := false
-
-	for i,byt := range rawBytes{
-		//if byt
-		//34是ASCII码的引号"
-		if byt == 34{
-			//不用&&大多数时候能少一次判断
-			if i>1{
-				if rawBytes[i-1] == 92{//92是ASCII码的反斜杠\
-					//当 前一位byte为转义符时，此次"不计入
-					continue
-				}
-				//取反
-				tag4tag = !tag4tag
-				continue
-			}
-			continue
-		}
-		//当tag4tag为真--即在双引号里，跳过本次循环（可以防止字符串和key里的特殊符号）
-		if tag4tag {
-			continue
-		}
-		switch byt{
-		case 123:
-			tag ++
-			continue
-		case 125:
-			tag --
-			continue
-		case 44://44是ASCII码的逗号,
-			if tag ==0{
-				items = append(items,tc.Bytes2str(rawBytes[markStart:i+1]))
-				markStart = i+1
-				for k,v := range items {
-					fmt.Println("inner",k,v)
-				}
-			}
-		}
+	for i,v :=range items{
+		fmt.Println("item in ex",i,v)
 	}
-	//len(rawBytes)-1可以去掉末尾的}
-	items = append(items,tc.Bytes2str(rawBytes[markStart:len(rawBytes)-1]))
-	//fmt.Println("item",items)
 	return items
 }
 
@@ -163,6 +181,7 @@ func (g *GoojsonByte)Analysts(items []string) []JsonKV {
 					jsr.WithinType = "option"
 					break
 				case 91:// [
+					fmt.Println("写array进去了",jsr.Within)
 					jsr.WithinType = "array"
 					break
 				case 34:// "
@@ -194,5 +213,6 @@ func (g *GoojsonByte)Analysts(items []string) []JsonKV {
 		}
 		jsrSlice = append(jsrSlice,jsr)
 	}
+	fmt.Println("jsr",jsrSlice)
 	return jsrSlice
 }
