@@ -103,3 +103,16 @@ func Recursion(input map[string]interface{}) {
 	}
 	return
 }
+
+func TestUnmarshall_Bind(t *testing.T) {
+	var un Unmarshall
+	s := "{\n    \"data\": {\n        \"goods\": null\n    },\n    \"info\": \"success\",\n    \"status\": 200\n}"
+	type TES struct {
+		Info   string                 `json:"info"`
+		Data   map[string]interface{} `json:"data"`
+		Status int                    `json:"status"`
+	}
+	a := &TES{}
+	un.Bind(s, a)
+	fmt.Println(a)
+}
