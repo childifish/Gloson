@@ -3,6 +3,7 @@ package function
 import (
 	"fmt"
 	u "goojson/under"
+	"reflect"
 )
 
 var tc u.TypeChanger
@@ -30,14 +31,15 @@ func (f *Factory) Umarsh2Map(raw string) (map[string]interface{}, error) {
 	return finalMap, err
 }
 
-func (f *Factory) Umarsh2BindStruct(raw string, v interface{}) (map[string]interface{}, error) {
+func (f *Factory) Umarsh2BindStruct(raw string, v interface{}) error {
 	//先分解为map
+	rv := reflect.ValueOf(v)
 	inMap, err := f.Umarsh2Map(raw)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	fmt.Println(inMap)
 	fmt.Println("-----------------------------------")
-	u.RecursionBinding(inMap, v)
-	return inMap, nil
+	u.RecursionBinding(inMap, v, rv)
+	return nil
 }

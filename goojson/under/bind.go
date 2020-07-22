@@ -5,7 +5,9 @@ import (
 	"reflect"
 )
 
-func RecursionBinding(input map[string]interface{}, v interface{}) {
+//一开始是先确定结构体的tag，再从map里找对应的值
+//可以先递归遍历map再find key
+func RecursionBinding(input map[string]interface{}, v interface{}, rv reflect.Value) {
 	typ := reflect.TypeOf(v).Elem()
 	fNum := typ.NumField()
 	var keySlice map[int]string
@@ -14,18 +16,17 @@ func RecursionBinding(input map[string]interface{}, v interface{}) {
 		key := typ.Field(i).Tag.Get("json")
 		keySlice[i] = key
 	}
-	RecursionMap(input, v, keySlice)
-
+	RecursionMap(input, rv, keySlice)
 }
 
-func RecursionMap(input map[string]interface{}, inter interface{}, key map[int]string) {
+func RecursionMap(input map[string]interface{}, rv reflect.Value, key map[int]string) {
 	for k, v := range input {
 		fmt.Println("key", k, "value", v, "type", reflect.TypeOf(v))
 		value := v.(JsonKV)
 		if value.WithinType == "option" {
 			mapIn, ok := value.Within.(map[string]interface{})
 			if ok {
-				RecursionMap(mapIn, v, key)
+				RecursionMap(mapIn, rv, key)
 			}
 		}
 		if value.WithinType == "array" {
@@ -44,23 +45,28 @@ func RecursionMap(input map[string]interface{}, inter interface{}, key map[int]s
 			fmt.Println(k)
 			if k == val {
 				fmt.Println("111")
-				WriteItem(value, &inter, k, i)
+				WriteItem(value, i, rv)
 			}
 		}
 	}
 	return
 }
 
-func WriteItem(value JsonKV, inter interface{}, k string, i int) {
+func WriteItem(value JsonKV, i int, rv reflect.Value) {
 	deep := value.Within
-	v := reflect.ValueOf(inter).Elem().FieldByName(k)
+	v := rv.Elem().Field(i)
 	ok := v.CanSet()
 	if !ok {
 		fmt.Println("不可以")
 	}
-	new := reflect.ValueOf(deep)
-	fmt.Println("在写了", new)
-	v.Set(new)
-	fmt.Println("new v", v)
-	fmt.Println("inter", inter)
+	switch value.WithinType {
+	case "string":
+		new := deep.(string)
+		v.SetString(new)
+	case "int":
+		new := deep.(int)
+		r := int64(new)
+		v.SetInt(r)
+	}
+
 }

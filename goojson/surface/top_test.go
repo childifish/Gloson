@@ -1,6 +1,7 @@
 package surface
 
 import (
+	"encoding/json"
 	"fmt"
 	"goojson/under"
 	"reflect"
@@ -106,13 +107,27 @@ func Recursion(input map[string]interface{}) {
 
 func TestUnmarshall_Bind(t *testing.T) {
 	var un Unmarshall
-	s := "{\n    \"data\": {\n        \"goods\": null\n    },\n    \"info\": \"success\",\n    \"status\": 200\n}"
+	s := "{\n    \"data\": \"goods\",\n    \"info\": \"success\",\n    \"status\": 200\n}"
 	type TES struct {
-		Info   string                 `json:"info"`
-		Data   map[string]interface{} `json:"data"`
-		Status int                    `json:"status"`
+		Info   string `json:"info"`
+		Data   string `json:"data"`
+		Status int    `json:"status"`
 	}
 	a := &TES{}
 	un.Bind(s, a)
+	fmt.Println(a)
+}
+
+func TestUnmarshall_Bind2(t *testing.T) {
+	//var un Unmarshall
+	var tc under.TypeChanger
+	s := "{\n    \"data\": \"goods\",\n    \"info\": \"success\",\n    \"status\": 200\n}"
+	type TES struct {
+		Info   string `json:"info"`
+		Data   string `json:"data"`
+		Status int    `json:"status"`
+	}
+	a := &TES{}
+	json.Unmarshal(tc.Str2bytes(s), a)
 	fmt.Println(a)
 }
