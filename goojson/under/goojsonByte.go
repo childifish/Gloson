@@ -20,11 +20,15 @@ func (g *GoojsonByte) Go2Array() [][]JsonKV {
 	var returners [][]JsonKV
 	fmt.Println("触发Go2Array")
 	items := g.EXBreaker()
+	for _, v := range items {
+		fmt.Println("it", v)
+	}
 	//items是一个chuck的字符串
 	for _, v := range items {
 		kvs, err := g.ArrayUmarsh2KV(v)
 		fmt.Println("kvs", kvs)
 		if err != nil {
+			fmt.Println("内部没有更多json")
 			return nil
 		}
 		for _, j := range kvs {
@@ -40,11 +44,12 @@ func (g *GoojsonByte) ArrayUmarsh2KV(raw string) ([]JsonKV, error) {
 	var jsonSlice []JsonKV
 	//替换掉换行符与空格
 	*g = tc.Str2bytes(CleanSpace(raw))
-	fmt.Println("ggggggg")
+	fmt.Println("ggggggg", *g)
 	//判断是否是json
 	err := CheckJson(*g)
 
 	if err != nil {
+		fmt.Println("应该不是json")
 		return nil, err
 	}
 	//拆分

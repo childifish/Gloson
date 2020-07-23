@@ -56,7 +56,17 @@ func (jsr *JsonKV) Distributor() (interface{}, bool) {
 		return jsr.False()
 	case "array":
 		fmt.Println("wozai")
-		return jsr.Array()
+		arr, ok := jsr.Array()
+		if ok {
+			return arr, ok
+		} else {
+			fmt.Println("1111")
+			s := jsr.Within.(string)
+			fmt.Println(s)
+			ar, _ := tc.Bytes2array(tc.Str2bytes(s))
+			fmt.Println(ar)
+			return ar, !ok
+		}
 	case "string":
 		return jsr.String()
 	case "null":
@@ -150,6 +160,10 @@ func (jsr *JsonKV) Array() ([]interface{}, bool) {
 	g = tc.Str2bytes(CleanSpace(jsr.Within.(string)))
 	fmt.Println("我是g", tc.Bytes2str(g))
 	arr := g.Go2Array()
+	if arr == nil {
+		fmt.Println("已经是最佳", g)
+		return nil, false
+	}
 	for _, v := range arr {
 		returner = append(returner, v)
 	}

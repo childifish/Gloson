@@ -38,8 +38,6 @@ func (f *Factory) Umarsh2BindStruct(raw string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(inMap)
-	fmt.Println("-----------------------------------")
 	u.RecursionBinding(inMap, v, rv)
 	return nil
 }
