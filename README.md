@@ -6,7 +6,7 @@
 
 
 
-- ### GOOJSON:pray:
+- ### GOOJSON再见:pray:下面是之前的readme
 
 - 非常简单，大概小学二年级就能看懂
 
