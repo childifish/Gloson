@@ -2,7 +2,7 @@ package under
 
 import (
 	"errors"
-	"fmt"
+	//"fmt"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -12,16 +12,17 @@ type TypeChanger struct {
 }
 type Cleaner struct {
 }
+
 var tc TypeChanger
 var cl Cleaner
 
 //去除传入字符串里的空格和换行符
-func (cl *Cleaner)CleanSpace(s string) string {
+func (cl *Cleaner) CleanSpace(s string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(s, "\n", ""), " ", "")
 }
 
 //检测是否是正确的Json
-func (cl *Cleaner)CheckJson(rawBytes []byte) error {
+func (cl *Cleaner) CheckJson(rawBytes []byte) error {
 	if len(rawBytes) != 0 {
 		if rawBytes[0] != 123 || rawBytes[len(rawBytes)-1] != 125 {
 			return errors.New("not correct json")
@@ -33,7 +34,7 @@ func (cl *Cleaner)CheckJson(rawBytes []byte) error {
 }
 
 //去除Key里的引号
-func (cl *Cleaner)CleanMark(s string) string {
+func (cl *Cleaner) CleanMark(s string) string {
 	b := tc.Str2bytes(s)
 	if b[0] == 34 {
 		b = b[1 : len(b)-1]
@@ -63,7 +64,6 @@ func (tc *TypeChanger) Bytes2array(b []byte) ([]interface{}, string) {
 	flag := true
 	tagFlag := false
 	for i, v := range b {
-		fmt.Println(i, v)
 		if v == 34 { //"
 			flag = !flag
 		}
@@ -110,4 +110,57 @@ func (tc *TypeChanger) Bytes2array(b []byte) ([]interface{}, string) {
 		}
 	}
 	return v, tag
+}
+
+//字符串，数字（以及他们的数组）转string
+func (tc *TypeChanger) Value2String(v interface{}) string {
+	switch v.(type) {
+	default:
+		return ""
+	case string:
+		r := "\"" + v.(string) + "\""
+		return r
+	case int:
+		r := strconv.Itoa(v.(int))
+		return r
+	case bool:
+		r := v.(bool)
+		if r {
+			return "true"
+		} else {
+			return "false"
+		}
+	case float64:
+		b := v.(float64)
+		r := strconv.FormatFloat(b, 'f', -1, 64)
+		return r
+	case []int:
+		arr := v.([]int)
+		str := "["
+		l := len(arr)
+		for i := 0; i < l-1; i++ {
+			str += Value2String(arr[i]) + ", "
+		}
+		str += Value2String(arr[l-1]) + "]"
+		return str
+	case []float64:
+		arr := v.([]float64)
+		str := "["
+		l := len(arr)
+		for i := 0; i < l-1; i++ {
+			str += Value2String(arr[i]) + ", "
+		}
+		str += Value2String(arr[l-1]) + "]"
+		return str
+	case []string:
+		arr := v.([]string)
+		str := "["
+		l := len(arr)
+		for i := 0; i < l-1; i++ {
+			str += Value2String(arr[i]) + ", "
+		}
+		str += Value2String(arr[l-1]) + "]"
+		return str
+
+	}
 }

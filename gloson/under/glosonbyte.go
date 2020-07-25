@@ -1,7 +1,5 @@
 package under
 
-import "fmt"
-
 type GlosonByte []byte
 
 func (g *GlosonByte) Go2KV() []JsonKV {
@@ -209,6 +207,6 @@ func (g *GlosonByte) Analysts(items []string) []JsonKV {
 		}
 		jsrSlice = append(jsrSlice, jsr)
 	}
-	fmt.Println("返回了",jsrSlice)
+	//fmt.Println("back", jsrSlice)
 	return jsrSlice
 }

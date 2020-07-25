@@ -2,7 +2,6 @@ package under
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 )
 
@@ -35,7 +34,7 @@ func (jkv *JsonKV) CheckType() error {
 }
 
 func (jkv *JsonKV) Distributor() (interface{}, bool) {
-	fmt.Println("distribute", jkv)
+	//fmt.Println("distribute", jkv)
 	switch jkv.WithinType {
 	default:
 		return jkv.Nil()
@@ -141,15 +140,12 @@ func (jkv *JsonKV) Nil() (interface{}, bool) {
 }
 
 func (jkv *JsonKV) Array() ([]interface{}, bool) {
-	fmt.Println("触发Array")
-	fmt.Println("array", jkv.Within)
 	var g GlosonByte
 	var returner []interface{}
 	g = tc.Str2bytes(cl.CleanSpace(jkv.Within.(string)))
-	fmt.Println("我是g", tc.Bytes2str(g))
 	arr := g.Go2Array()
 	if arr == nil {
-		fmt.Println("已经是最佳", g)
+		//fmt.Println("已经是最佳", g)
 		return nil, false
 	}
 	for _, v := range arr {
@@ -166,7 +162,6 @@ func (jkv *JsonKV) Option() (map[string]interface{}, bool) {
 func (jkv *JsonKV) Unmarshall() (map[string]interface{}, bool) {
 	var g GlosonByte
 	g = tc.Str2bytes(cl.CleanSpace(jkv.Within.(string)))
-	fmt.Println(tc.Bytes2str(g))
 	if len(g) == 2 {
 		jkv.WithinType = "nil"
 		return nil, true
@@ -177,9 +172,5 @@ func (jkv *JsonKV) Unmarshall() (map[string]interface{}, bool) {
 		return nil, false
 	}
 	jkv.Within = kMap
-	for k, v := range kMap {
-		fmt.Println("im kmap", k, v)
-	}
-
 	return kMap, true
 }

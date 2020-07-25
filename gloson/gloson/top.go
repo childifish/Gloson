@@ -2,18 +2,20 @@ package gloson
 
 import "gloson/fun"
 
-
-func Map(json string)(map[string]interface{}, error)  {
+//反序列化到map
+func Map(json string) (map[string]interface{}, error) {
 	var um fun.Unmarshall
 	return um.Unmarshall2Map(json)
 }
 
-func Bind(json string,v interface{}) error {
+//反序列化到结构体
+func Bind(json string, v interface{}) error {
 	var um fun.Unmarshall
-	return um.UnmarshallBinding(json,v)
+	return um.UnmarshallBinding(json, v)
 }
 
-func Marshall(v interface{})(string,error)  {
+//序列化
+func Marshall(v interface{}) (string, error) {
 	var m fun.Marshall
 	return m.MarshallJSON(v)
 }
