@@ -1,37 +1,33 @@
 package under
 
 import (
-	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 )
 
 //序列化
 type GlosonMa struct {
-	Object  interface{}  //传入的结构体
-	ItemNum int          //结构体field数量
-	TagMap  map[int]Item //key--位置 value--信息
-	Nesting []int        //位置
-	Json    string       //完成后的json string
+	Object  interface{} //传入的结构体
+	ItemNum int         //结构体field数量
+	TagMap  []Item      //
+	Json    string      //完成后的json string
 }
 
 //key--位置 value--信息
 type Item struct {
-	Name  string
-	Value interface{}
+	Tag      string
+	Position []int
+	Paste    []int
+	Value    interface{}
+	Type     reflect.Kind
 }
 
 func (glom *GlosonMa) StartMarshall(v interface{}) error {
 	glom.Object = v
-	err := glom.ViewItem()
-	if err != nil {
-		return err
-	}
-	//中间有内嵌结构体
-	if glom.Nesting != nil {
-
-	}
-	err = glom.Factory()
+	glom.ViewItem([]int{})
+	fmt.Println(glom)
+	err := glom.Factory()
 	if err != nil {
 		return err
 	}
@@ -40,46 +36,65 @@ func (glom *GlosonMa) StartMarshall(v interface{}) error {
 }
 
 //找到key和Field总数
-func (glom *GlosonMa) ViewItem() error {
-	typ := reflect.TypeOf(glom.Object).Elem()
-	fNum := typ.NumField()
-	glom.ItemNum = fNum
-	tagMap := make(map[int]Item)
-	for i := 0; i < fNum; i++ {
-		key := typ.Field(i).Tag.Get("json")
-		if key == "" {
-			return errors.New("void tag")
-		}
-		t := reflect.ValueOf(glom.Object)
-		if t.Kind() == reflect.Ptr {
-			t = t.Elem()
-		}
-		if t.Field(i).Kind() == reflect.Struct {
-			glom.Nesting = append(glom.Nesting, i)
-		}
-		value := t.Field(i).Interface()
-		tagMap[i] = Item{
-			Name:  key,
-			Value: value,
-		}
+func (glom *GlosonMa) ViewItem(posBeyond []int) {
+	var nowItem Item
+	val := reflect.ValueOf(glom.Object)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
 	}
-	glom.TagMap = tagMap
-	return nil
+	typ := reflect.TypeOf(glom.Object)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	fNum := typ.NumField()
+	for i := 0; i < fNum; i++ {
+		nowPos := append(posBeyond, i)
+		tag := typ.FieldByIndex(nowPos).Tag.Get("json")
+		info := val.FieldByIndex(nowPos).Interface()
+		kd := val.FieldByIndex(nowPos).Kind()
+		nowItem = Item{
+			Tag:      tag,
+			Position: nowPos,
+			Paste:    posBeyond,
+			Value:    info,
+			Type:     kd,
+		}
+		if kd == reflect.Struct {
+			glom.TagMap = append(glom.TagMap, nowItem)
+			glom.ViewItem(nowPos)
+			continue
+		}
+		glom.TagMap = append(glom.TagMap, nowItem)
+	}
+
 }
 
 func (glom *GlosonMa) Factory() error {
 	json := "{\n"
 	//循环ItemNum int - 1次
-	for i := 0; i < glom.ItemNum-1; i++ {
-		tag := glom.TagMap[i].Name
-		json += "    \"" + tag + "\":"
-		json += Value2String(glom.TagMap[i].Value) + ",\n"
+	for i := 0; i < len(glom.TagMap); i++ {
+
+		if glom.TagMap[i].Type == reflect.Struct {
+			//continue
+		}
+		json += glom.InWrite(i)
 	}
-	tag := glom.TagMap[glom.ItemNum-1].Name
-	json += "    \"" + tag + "\":"
-	json += Value2String(glom.TagMap[glom.ItemNum-1].Value) + "\n}"
+	//json += glom.InWrite(len(glom.TagMap) - 1)
 	glom.Json = json
 	return nil
+}
+
+func (glom *GlosonMa) InWrite(i int) string {
+	if i == len(glom.TagMap)-1 {
+		tag := glom.TagMap[len(glom.TagMap)-1].Tag
+		json := "    \"" + tag + "\":"
+		json += Value2String(glom.TagMap[len(glom.TagMap)-1].Value) + "\n}"
+		return json
+	}
+	tag := glom.TagMap[i].Tag
+	json := "    \"" + tag + "\":"
+	json += Value2String(glom.TagMap[i].Value) + ",\n"
+	return json
 }
 
 //最基础的写入
