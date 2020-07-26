@@ -15,7 +15,7 @@ func Bind(json string, v interface{}) error {
 }
 
 //序列化
-func Marshall(v interface{}) (string, error) {
+func Marshall(v interface{}) string {
 	var m fun.Marshall
 	return m.MarshallJSON(v)
 }

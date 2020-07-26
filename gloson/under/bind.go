@@ -26,7 +26,7 @@ func (bin *BindingMsg) InitBindingMsg(v interface{}) {
 }
 
 //解析结构里的全部tag
-func (bin *BindingMsg) FindKeyD(posBeyound []int) {
+func (bin *BindingMsg) FindKeyD(posBeyond []int) {
 	val := reflect.ValueOf(bin.BindBefore)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -39,7 +39,7 @@ func (bin *BindingMsg) FindKeyD(posBeyound []int) {
 	var keyMap map[string]Field
 	keyMap = make(map[string]Field)
 	for i := 0; i < fNum; i++ {
-		nowPos := append(posBeyound, i)
+		nowPos := append(posBeyond, i)
 		key := typ.FieldByIndex(nowPos).Tag.Get("json")
 		keyMap[key] = Field{
 			Position: nowPos,

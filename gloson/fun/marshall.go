@@ -7,7 +7,7 @@ type Marshall struct {
 }
 
 //序列化
-func (m *Marshall) MarshallJSON(v interface{}) (string, error) {
-	err := m.Gloson.StartMarshall(v)
-	return m.Gloson.Json, err
+func (m *Marshall) MarshallJSON(v interface{}) string {
+	m.Gloson.StartMarshall(v)
+	return m.Gloson.Json
 }

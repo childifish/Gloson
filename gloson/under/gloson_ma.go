@@ -1,7 +1,6 @@
 package under
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -23,19 +22,13 @@ type Item struct {
 	Type     reflect.Kind
 }
 
-func (glom *GlosonMa) StartMarshall(v interface{}) error {
+func (glom *GlosonMa) StartMarshall(v interface{}) {
 	glom.Object = v
 	glom.ViewItem([]int{})
-	fmt.Println(glom)
-	err := glom.Factory()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	glom.NewFactory()
 }
 
-//找到key和Field总数
+//
 func (glom *GlosonMa) ViewItem(posBeyond []int) {
 	var nowItem Item
 	val := reflect.ValueOf(glom.Object)
@@ -46,9 +39,10 @@ func (glom *GlosonMa) ViewItem(posBeyond []int) {
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
-	fNum := typ.NumField()
+	fNum := val.FieldByIndex(posBeyond).NumField()
 	for i := 0; i < fNum; i++ {
 		nowPos := append(posBeyond, i)
+		//todo：这里后续可以优化
 		tag := typ.FieldByIndex(nowPos).Tag.Get("json")
 		info := val.FieldByIndex(nowPos).Interface()
 		kd := val.FieldByIndex(nowPos).Kind()
@@ -62,39 +56,70 @@ func (glom *GlosonMa) ViewItem(posBeyond []int) {
 		if kd == reflect.Struct {
 			glom.TagMap = append(glom.TagMap, nowItem)
 			glom.ViewItem(nowPos)
-			continue
+		} else {
+			glom.TagMap = append(glom.TagMap, nowItem)
 		}
-		glom.TagMap = append(glom.TagMap, nowItem)
 	}
 
 }
 
-func (glom *GlosonMa) Factory() error {
+//没什么好说的
+func (glom *GlosonMa) NewFactory() {
 	json := "{\n"
-	//循环ItemNum int - 1次
-	for i := 0; i < len(glom.TagMap); i++ {
-
-		if glom.TagMap[i].Type == reflect.Struct {
-			//continue
-		}
+	MAX := len(glom.TagMap)
+	for i := 0; i < MAX; i++ {
 		json += glom.InWrite(i)
 	}
-	//json += glom.InWrite(len(glom.TagMap) - 1)
+	for g != 0 {
+		json += Space(g) + "},\n"
+		g--
+	}
+	json += "}"
 	glom.Json = json
-	return nil
 }
 
+var g int
+
+//
 func (glom *GlosonMa) InWrite(i int) string {
-	if i == len(glom.TagMap)-1 {
-		tag := glom.TagMap[len(glom.TagMap)-1].Tag
-		json := "    \"" + tag + "\":"
-		json += Value2String(glom.TagMap[len(glom.TagMap)-1].Value) + "\n}"
+	var json string
+	if i >= 1 && i <= len(glom.TagMap)-1 {
+		//"和上一个贴/依附的位置不相同", "而且上一个不是结构体"
+		if (!reflect.DeepEqual(glom.TagMap[i].Paste, glom.TagMap[i-1].Paste)) && !(glom.TagMap[i-1].Type == reflect.Struct) {
+			c := len(glom.TagMap[i-1].Position) - len(glom.TagMap[i].Position)
+			for i2 := 0; i2 < c; i2++ {
+				json += Space(g) + "},\n"
+				g--
+			}
+		}
+	}
+	if glom.TagMap[i].Type == reflect.Struct {
+		tag := glom.TagMap[i].Tag
+		json += Space(len(glom.TagMap[i].Position)) + "\"" + tag + "\":{\n"
+		g++
 		return json
 	}
 	tag := glom.TagMap[i].Tag
-	json := "    \"" + tag + "\":"
+	json += Space(len(glom.TagMap[i].Position)) + "\"" + tag + "\":"
 	json += Value2String(glom.TagMap[i].Value) + ",\n"
 	return json
+}
+
+func (glom *GlosonMa) FinalWrite() string {
+	tag := glom.TagMap[len(glom.TagMap)-1].Tag
+	json := Space(len(glom.TagMap[len(glom.TagMap)-1].Position)) + "\"" + tag + "\":"
+	json += Value2String(glom.TagMap[len(glom.TagMap)-1].Value) + "\n"
+	json += "}"
+	return json
+}
+
+//用来加空格
+func Space(i int) string {
+	var p string
+	for j := 0; j < i; j++ {
+		p += "    "
+	}
+	return p
 }
 
 //最基础的写入
