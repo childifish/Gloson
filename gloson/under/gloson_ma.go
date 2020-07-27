@@ -78,6 +78,7 @@ func (glom *GlosonMa) NewFactory() {
 	glom.Json = json
 }
 
+//全局变量-标识已经写了的大括号
 var g int
 
 //
@@ -105,6 +106,7 @@ func (glom *GlosonMa) InWrite(i int) string {
 	return json
 }
 
+//没用到
 func (glom *GlosonMa) FinalWrite() string {
 	tag := glom.TagMap[len(glom.TagMap)-1].Tag
 	json := Space(len(glom.TagMap[len(glom.TagMap)-1].Position)) + "\"" + tag + "\":"

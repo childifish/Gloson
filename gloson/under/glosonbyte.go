@@ -40,7 +40,7 @@ func (g *GlosonByte) Array2KV(raw string) ([]JsonKV, error) {
 	return jsonSlice, nil
 }
 
-//返回glosonByte本身
+//返回*glosonByte
 func (g *GlosonByte) Self() []byte {
 	return *g
 }

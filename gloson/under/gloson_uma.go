@@ -19,7 +19,7 @@ func (glo *GlosonUma) StartMap(json string) error {
 	glo.RawByte = tc.Str2bytes(cl.CleanSpace(json))
 
 	//判断是否是json
-	//todo:多个json可以吗
+	//todo:多个json
 	err := cl.CheckJson(glo.RawByte)
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (glo *GlosonUma) StartBinding(json string, v interface{}) error {
 
 //
 func (glo *GlosonUma) Glo2KV() {
-	//breaker将一个chuck拆分，
+	//breaker
 	glo.Buffer.Items = glo.RawByte.Breaker()
 	glo.KvSlice = glo.RawByte.Analysts(glo.Buffer.Items)
 }

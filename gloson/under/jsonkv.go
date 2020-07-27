@@ -12,7 +12,6 @@ type JsonKV struct {
 }
 
 func (jkv *JsonKV) WriteInMap(jsrSlice []JsonKV) (map[string]interface{}, error) {
-	//fmt.Println("writer", jsrSlice)
 	var valueMap = make(map[string]interface{})
 	for _, v := range jsrSlice {
 		key := v.Key
@@ -34,7 +33,6 @@ func (jkv *JsonKV) CheckType() error {
 }
 
 func (jkv *JsonKV) Distributor() (interface{}, bool) {
-	//fmt.Println("distribute", jkv)
 	switch jkv.WithinType {
 	default:
 		return jkv.Nil()

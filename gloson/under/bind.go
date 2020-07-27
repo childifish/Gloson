@@ -76,9 +76,6 @@ func (bin *BindingMsg) WriteItem(value JsonKV, i []int) {
 		rv = rv.Elem()
 	}
 	v := rv.FieldByIndex(i)
-	//fmt.Println(value)
-	//fmt.Println("准备,deep和deep的格式", deep, reflect.TypeOf(deep))
-	//fmt.Println("写的位置和格式", i, reflect.TypeOf(v))
 	switch value.WithinType {
 	case "string":
 		n := deep.(string)
